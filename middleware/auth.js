@@ -4,12 +4,12 @@ const { errorHandler } = require('../config/handler');
 
 const auth = async (req, res, next) => {
     try {
-        const token = req.cookies.jwt
+        const token = req?.headers?.authorization
         const verifyUser = await jwt.verify(token, process.env.JWT_SECRET)
         const user = await User.findOne({_id:verifyUser._id })
         req.token = token
         req.user = user
-        next()
+        next()        
     } catch (error) {
         res.send(errorHandler(error))
     }

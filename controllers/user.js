@@ -1,5 +1,4 @@
 const User = require("./../models/users");
-const bcrypt = require('bcrypt');
 const { errorHandler, resHandler } = require('../config/handler')
 
 module.exports.createUser = async (req, res) => {
@@ -59,14 +58,16 @@ module.exports.login = async (req, res) => {
         const user = await User.findOne({ email: req.body.email })
         const isMatch = await user.verifyPassword(req.body.password)
         if (isMatch) {
-            const token = await user.generateJWT()
-            await res.cookie("jwt", token, {
-                expires: new Date(Date.now() + 30000),
-                httpOnly: true,
-                // secure:true
-            })
-
-            res.send(resHandler(user))
+            const token = await user.generateJWT()            
+            const result = {
+                "_id": user._id,
+                "firstName":user.firstName,
+                "lastName": user.lastName,
+                "email": user.email,
+                "phone": user.phone,
+                "token":token
+            }
+            await res.send(resHandler(result))
         } else {
             res.send(errorHandler("Invalid login details."))
         }
@@ -79,8 +80,8 @@ module.exports.login = async (req, res) => {
 module.exports.logout = async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter((ele) => ele.token !== req.token)
-        res.clearCookie("jwt")
         await req.user.save()
+        await res.send(resHandler())
     } catch (error) {
         res.send(errorHandler(error))
 

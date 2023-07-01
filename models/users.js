@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+    userType:{
+        type:String,
+        trim:true,
+    },
     tokens:[{
         token:{
             type:String,

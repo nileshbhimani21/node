@@ -48,6 +48,9 @@ const userSchema = new mongoose.Schema({
         type:String,
         trim:true,
     },
+    status:{
+        type:Boolean,
+    },
     tokens:[{
         token:{
             type:String,

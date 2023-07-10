@@ -15,8 +15,10 @@ module.exports.createUser = async (req, res) => {
 module.exports.users = async (req, res) => {
     try {
         const { limit, skip, desc, key, search } = req.body
-        const total = await User.find({"userType":"user"}).count()
-        const users = await User.find({"userType":"user"}).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
+        let regex = new RegExp(search,'i');
+        const serchQuery = [{firstName: regex },{lastName: regex},{email: regex},{phone: regex}] 
+        const total = await User.find({"userType":"user", $or: serchQuery}).count()
+        const users = await User.find({"userType":"user", $or: serchQuery}).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
             email: 1, firstName: 1, lastName: 1, phone: 1, status:1, userType:1
         })
         res.send(resHandler({users,total}))

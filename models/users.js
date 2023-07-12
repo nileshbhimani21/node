@@ -5,65 +5,66 @@ const jwt = require('jsonwebtoken');
 const { errorHandler } = require('../config/handler');
 
 const userSchema = new mongoose.Schema({
-    firstName : {
-        type:String,
+    firstName: {
+        type: String,
         required: true,
-        trim:true,
+        trim: true,
     },
-    lastName : {
-        type:String,
+    lastName: {
+        type: String,
         required: true,
-        trim:true,
+        trim: true,
     },
-    email : {
-        type:String,
+    email: {
+        type: String,
         required: true,
-        trim:true,
+        trim: true,
         unique: true,
-        validate(value){
-            if(!validator.isEmail(value)){
+        validate(value) {
+            if (!validator.isEmail(value)) {
                 throw new error("Invalid Eamil")
             }
         }
     },
-    phone : {
-        type:String,
+    phone: {
+        type: String,
         required: true,
-        trim:true,
+        trim: true,
         unique: true,
-        min:10
-        
+        min: 10
+
     },
-    password:{
-        type:String,
+    password: {
+        type: String,
         required: true,
-        trim:true,
-        validate(value){
-            if(!validator.isStrongPassword(value)){
+        trim: true,
+        validate(value) {
+            if (!validator.isStrongPassword(value)) {
                 throw new error("Password must be strong")
             }
         }
     },
-    userType:{
-        type:String,
-        trim:true,
+    userType: {
+        type: String,
+        trim: true,
     },
-    status:{
-        type:Boolean,
+    status: {
+        type: Boolean,
     },
-    tokens:[{
-        token:{
-            type:String,
+    roles: [String],
+    tokens: [{
+        token: {
+            type: String,
             required: true
         }
     }]
-},{
+}, {
     timestamps: true
 })
 
 //bcrypt password
 userSchema.pre("save", async function (next) {
-    if(this.isModified("password")){
+    if (this.isModified("password")) {
         this.password = await bcrypt.hash(this.password, 10)
     }
     next()
@@ -76,10 +77,10 @@ userSchema.methods.verifyPassword = async function (password) {
 };
 
 // JWT Generate
-userSchema.methods.generateJWT = async function (next){
+userSchema.methods.generateJWT = async function (next) {
     try {
-        const token = await jwt.sign({_id: this._id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXP})
-        this.tokens = this.tokens.concat({token})
+        const token = await jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXP })
+        this.tokens = this.tokens.concat({ token })
         await this.save()
         return token
     } catch (error) {
@@ -87,6 +88,6 @@ userSchema.methods.generateJWT = async function (next){
     }
 }
 
-const User = new mongoose.model('User',userSchema)
+const User = new mongoose.model('User', userSchema)
 
 module.exports = User

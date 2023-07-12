@@ -1,5 +1,6 @@
 const User = require("./../models/users");
-const { errorHandler, resHandler } = require('../config/handler')
+const { errorHandler, resHandler } = require('../config/handler');
+const Role = require("../models/roles");
 
 module.exports.createUser = async (req, res) => {
     try {
@@ -19,7 +20,7 @@ module.exports.users = async (req, res) => {
         const serchQuery = [{firstName: regex },{lastName: regex},{email: regex},{phone: regex}] 
         const total = await User.find({"userType":"user", $or: serchQuery}).count()
         const users = await User.find({"userType":"user", $or: serchQuery}).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
-            email: 1, firstName: 1, lastName: 1, phone: 1, status:1, userType:1
+            email: 1, firstName: 1, lastName: 1, phone: 1, status:1, userType:1,roles:1
         })
         res.send(resHandler({users,total}))
     } catch (error) {
@@ -44,7 +45,6 @@ module.exports.updateUser = async (req, res) => {
         const _id = req.params.id
         const updateUser = await User.findByIdAndUpdate(_id, req.body, { new: true })
         res.send(resHandler(updateUser))
-        console.log(first)
     } catch (error) {
         res.send(errorHandler(error))
 
@@ -75,6 +75,8 @@ module.exports.login = async (req, res) => {
                     "lastName": user.lastName,
                     "email": user.email,
                     "phone": user.phone,
+                    "userType": user.userType,
+                    "roles": user.roles,
                     "token": token
                 }
                 await res.send(resHandler(result))
@@ -93,6 +95,16 @@ module.exports.logout = async (req, res) => {
         req.user.tokens = req.user.tokens.filter((ele) => ele.token !== req.token)
         await req.user.save()
         await res.send(resHandler())
+    } catch (error) {
+        res.send(errorHandler(error))
+
+    }
+}
+
+module.exports.userRoles = async (req, res) => {
+    try {
+        const roles = await Role.find()
+        await res.send(resHandler(roles))
     } catch (error) {
         res.send(errorHandler(error))
 

@@ -14,4 +14,9 @@ Step 2
 MONGODB_URI = "mongodb://127.0.0.1:27017/demo"
 PORT = 5000
 JWT_SECRET = "SECRET#123",
-JWT_EXP = "10m"
+JWT_EXP = "24h"
+BASE_URL = http://localhost:3000
+USER = 
+PASS = 
+HOST =  "smtp.gmail.com"
+SERVICE = "gmail"

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUser, users, user, updateUser, deleteUser, login, logout, userRoles } = require('../controllers/user');
+const { createUser, users, user, updateUser, deleteUser, login, logout, userRoles, forgotPassword, resetPassword } = require('../controllers/user');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
@@ -11,5 +11,7 @@ router.delete("/users/:id", deleteUser)
 router.post("/login", login)
 router.get("/logout",auth, logout)
 router.get("/userroles", userRoles)
+router.post("/forgotpassword", forgotPassword)
+router.post('/resetpassword/:token', resetPassword)
 
 module.exports = router;

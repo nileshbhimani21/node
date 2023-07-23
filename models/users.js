@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const validator = require("validator")
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { errorHandler } = require('../config/handler');
+const { errorHandler } = require('../utils/handler');
 
 const userSchema = new mongoose.Schema({
     firstName: {

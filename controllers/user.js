@@ -1,6 +1,9 @@
 const User = require("./../models/users");
-const { errorHandler, resHandler } = require('../config/handler');
+const { errorHandler, resHandler } = require('../utils/handler');
 const Role = require("../models/roles");
+const sendEmail = require("../utils/sendEmail");
+const resetPasswordTemplate = require("../utils/template/resetPassword");
+const jwt = require('jsonwebtoken');
 
 module.exports.createUser = async (req, res) => {
     try {
@@ -16,13 +19,13 @@ module.exports.createUser = async (req, res) => {
 module.exports.users = async (req, res) => {
     try {
         const { limit, skip, desc, key, search } = req.body
-        let regex = new RegExp(search,'i');
-        const serchQuery = [{firstName: regex },{lastName: regex},{email: regex},{phone: regex}] 
-        const total = await User.find({"userType":"user", $or: serchQuery}).count()
-        const users = await User.find({"userType":"user", $or: serchQuery}).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
-            email: 1, firstName: 1, lastName: 1, phone: 1, status:1, userType:1,roles:1
+        let regex = new RegExp(search, 'i');
+        const serchQuery = [{ firstName: regex }, { lastName: regex }, { email: regex }, { phone: regex }]
+        const total = await User.find({ "userType": "user", $or: serchQuery }).count()
+        const users = await User.find({ "userType": "user", $or: serchQuery }).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
+            email: 1, firstName: 1, lastName: 1, phone: 1, status: 1, userType: 1, roles: 1
         })
-        res.send(resHandler({users,total}))
+        res.send(resHandler({ users, total }))
     } catch (error) {
         res.send(errorHandler(error))
 
@@ -64,7 +67,7 @@ module.exports.login = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
         const isMatch = await user.verifyPassword(req.body.password)
-        if(user.status === false){
+        if (user.status === false) {
             res.send(errorHandler("User Inactive."))
         } else {
             if (isMatch) {
@@ -108,5 +111,34 @@ module.exports.userRoles = async (req, res) => {
     } catch (error) {
         res.send(errorHandler(error))
 
+    }
+}
+module.exports.forgotPassword = async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email })
+        if (!user) {
+            return res.status(400).send(errorHandler("user with given email doesn't exist"))
+        }
+        const token = await user.generateJWT()
+        const link = `${process.env.BASE_URL}/reset-password/${token}`;
+        await sendEmail(user.email, "Password reset", resetPasswordTemplate(link));
+        await res.send({message:"password reset link sent to your email account", status: 200})
+    } catch (error) {
+        res.send(errorHandler(error))
+    }
+}
+module.exports.resetPassword = async (req, res) => {
+    try {
+        const verifyUser = await jwt.verify(req.params.token, process.env.JWT_SECRET)
+        const user = await User.findOne({_id:verifyUser._id })
+        if (!user || !verifyUser) {
+            return res.status(400).send(errorHandler("invalid link or expired"))
+        }
+        user.password = req.body.password;
+        user.tokens = []
+        await user.save();
+        await res.send(resHandler())
+    } catch (error) {
+        res.send(errorHandler(error))
     }
 }

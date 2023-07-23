@@ -21,11 +21,20 @@ module.exports.users = async (req, res) => {
         const { limit, skip, desc, key, search } = req.body
         let regex = new RegExp(search, 'i');
         const serchQuery = [{ firstName: regex }, { lastName: regex }, { email: regex }, { phone: regex }]
-        const total = await User.find({ "userType": "user", $or: serchQuery }).count()
-        const users = await User.find({ "userType": "user", $or: serchQuery }).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
-            email: 1, firstName: 1, lastName: 1, phone: 1, status: 1, userType: 1, roles: 1
-        })
-        res.send(resHandler({ users, total }))
+        if (req.user.userType === 'admin') {
+            const total = await User.find({ "userType": ["user", "subUser"], $or: serchQuery }).count()
+            const users = await User.find({ "userType": ["user", "subUser"], $or: serchQuery }).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
+                email: 1, firstName: 1, lastName: 1, phone: 1, status: 1, userType: 1, roles: 1
+            })
+            res.send(resHandler({ users, total }))
+        } else {
+            const total = await User.find({ "userType": "subUser", "userId": req.user._id, $or: serchQuery }).count()
+            const users = await User.find({ "userType": "subUser", "userId": req.user._id, $or: serchQuery }).limit(limit).skip(skip).sort({ [key]: desc ? -1 : 1 }).select({
+                email: 1, firstName: 1, lastName: 1, phone: 1, status: 1, userType: 1, roles: 1
+            })
+            res.send(resHandler({ users, total }))
+        }
+
     } catch (error) {
         res.send(errorHandler(error))
 

@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    userId: {
+        type: String,
+        trim: true,
+    },
     status: {
         type: Boolean,
     },

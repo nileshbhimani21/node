@@ -1,6 +1,7 @@
 const express = require('express');
-const { createUser, users, user, updateUser, deleteUser, login, logout, userRoles, forgotPassword, resetPassword } = require('../controllers/user');
+const { createUser, users, user, updateUser, deleteUser, login, logout, userRoles, forgotPassword, resetPassword, updateProfile } = require('../controllers/user');
 const auth = require('../middleware/auth');
+const { uploadFile, uploadSingle } = require('../middleware/upload');
 const router = express.Router();
 
 router.post("/users/create", createUser)
@@ -13,5 +14,7 @@ router.get("/logout",auth, logout)
 router.get("/userroles", userRoles)
 router.post("/forgotpassword", forgotPassword)
 router.post('/resetpassword/:token', resetPassword)
+router.post('/resetpassword/:token', resetPassword)
+router.patch("/updateProfile/:id",auth, uploadSingle, updateProfile)
 
 module.exports = router;

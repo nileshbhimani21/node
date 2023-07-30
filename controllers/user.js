@@ -131,7 +131,7 @@ module.exports.forgotPassword = async (req, res) => {
         const token = await user.generateJWT()
         const link = `${process.env.BASE_URL}/reset-password/${token}`;
         await sendEmail(user.email, "Password reset", resetPasswordTemplate(link));
-        await res.send({message:"password reset link sent to your email account", status: 200})
+        await res.send({ message: "password reset link sent to your email account", status: 200 })
     } catch (error) {
         res.send(errorHandler(error))
     }
@@ -139,7 +139,7 @@ module.exports.forgotPassword = async (req, res) => {
 module.exports.resetPassword = async (req, res) => {
     try {
         const verifyUser = await jwt.verify(req.params.token, process.env.JWT_SECRET)
-        const user = await User.findOne({_id:verifyUser._id })
+        const user = await User.findOne({ _id: verifyUser._id })
         if (!user || !verifyUser) {
             return res.status(400).send(errorHandler("invalid link or expired"))
         }
@@ -148,6 +148,30 @@ module.exports.resetPassword = async (req, res) => {
         await user.save();
         await res.send(resHandler())
     } catch (error) {
+        res.send(errorHandler(error))
+    }
+}
+module.exports.updateProfile = async (req, res) => {
+    try {
+        const _id = req.params.id
+        if(req.file){
+            req.body.profilePic = await req.file
+        }
+        const updateUser = await User.findByIdAndUpdate(_id, req.body, { new: true })
+        const result = {
+            "_id": updateUser._id,
+            "firstName": updateUser.firstName,
+            "lastName": updateUser.lastName,
+            "email": updateUser.email,
+            "phone": updateUser.phone,
+            "userType": updateUser.userType,
+            "roles": updateUser.roles,
+            "profilePic":updateUser.profilePic,
+            "token": req.token
+        }
+        res.send(resHandler(result))
+    } catch (error) {
+        console.log(error)
         res.send(errorHandler(error))
     }
 }

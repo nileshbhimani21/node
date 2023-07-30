@@ -52,6 +52,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    profilePic: {
+        type: Object,
+        trim: true,
+    },
     status: {
         type: Boolean,
     },
